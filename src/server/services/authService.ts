@@ -1,3 +1,4 @@
+import bcrypt from "bcrypt";
 import { signToken } from "@/lib/auth";
 import { toUserDTO, type UserDTO } from "@/server/dto/userDto";
 import { userRepository, type NewUser } from "@/server/repositories/userRepository";
@@ -32,13 +33,21 @@ export const authService = {
     if (existing) {
       throw new AuthError("El correo ya está registrado", 409);
     }
-    const user = await userRepository.create(input);
+    const hashedPassword = await bcrypt.hash(input.password, 10);
+    const user = await userRepository.create({
+      ...input,
+      password: hashedPassword,
+    });
     return buildResult(user);
   },
 
   async login(email: string, password: string): Promise<AuthResult> {
     const user = await userRepository.findByEmail(email);
-    if (!user || user.password !== password) {
+    if (!user) {
+      throw new AuthError("Credenciales inválidas", 401);
+    }
+    const isValidPassword = await bcrypt.compare(password, user.password);
+    if (!isValidPassword) {
       throw new AuthError("Credenciales inválidas", 401);
     }
     return buildResult(user);

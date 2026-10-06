@@ -15,5 +15,14 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
   if (!order) {
     return NextResponse.json({ error: "Orden no encontrada" }, { status: 404 });
   }
+
+  // VERIFICACIÓN CRÍTICA: Validar ownership - Prevenir IDOR
+  if (order.userId !== session.id) {
+    return NextResponse.json(
+      { error: "No autorizado para acceder a esta orden" },
+      { status: 403 }
+    );
+  }
+
   return NextResponse.json(order);
 }

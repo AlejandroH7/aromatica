@@ -16,7 +16,7 @@ export default function ProductDetail({ id }: { id: string }) {
   const [reviews, setReviews] = useState<ReviewDTO[]>([]);
   const [notFound, setNotFound] = useState(false);
   const [author, setAuthor] = useState("");
-  const [bodyHtml, setBodyHtml] = useState("");
+  const [body, setBody] = useState("");
   const [rating, setRating] = useState(5);
   const [formError, setFormError] = useState<string | null>(null);
   const [sending, setSending] = useState(false);
@@ -46,14 +46,14 @@ export default function ProductDetail({ id }: { id: string }) {
       const res = await fetch(`/api/products/${id}/reviews`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ author: author || user?.name, bodyHtml, rating }),
+        body: JSON.stringify({ author: author || user?.name, bodyHtml: body, rating }),
       });
       const data = await res.json();
       if (!res.ok) {
         setFormError(data.error ?? "No se pudo enviar la reseña");
         return;
       }
-      setBodyHtml("");
+      setBody("");
       await loadReviews();
     } catch {
       setFormError("No se pudo conectar con el servidor");
@@ -153,10 +153,9 @@ export default function ProductDetail({ id }: { id: string }) {
                       <span className="text-sand-dark">{"★".repeat(Math.max(0, 5 - r.rating))}</span>
                     </span>
                   </div>
-                  <div
-                    className="mt-3 text-[0.95rem] leading-relaxed text-ink-muted"
-                    dangerouslySetInnerHTML={{ __html: r.bodyHtml }}
-                  />
+                  <p className="mt-3 text-[0.95rem] leading-relaxed text-ink-muted whitespace-pre-wrap break-words">
+                    {r.bodyHtml}
+                  </p>
                 </article>
               ))}
             </div>
@@ -183,8 +182,8 @@ export default function ProductDetail({ id }: { id: string }) {
               </label>
               <textarea
                 id="review-body"
-                value={bodyHtml}
-                onChange={(e) => setBodyHtml(e.target.value)}
+                value={body}
+                onChange={(e) => setBody(e.target.value)}
                 placeholder="Cuéntanos qué te pareció"
                 aria-label="Tu reseña"
                 rows={4}

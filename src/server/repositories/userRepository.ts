@@ -1,3 +1,4 @@
+import bcrypt from "bcrypt";
 import { prisma } from "@/lib/db";
 
 export interface NewUser {
@@ -16,7 +17,13 @@ export const userRepository = {
     return prisma.user.findUnique({ where: { id } });
   },
 
-  create(data: NewUser) {
-    return prisma.user.create({ data });
+  async create(data: NewUser) {
+    const hashedPassword = await bcrypt.hash(data.password, 10);
+    return prisma.user.create({
+      data: {
+        ...data,
+        password: hashedPassword,
+      },
+    });
   },
 };
