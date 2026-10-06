@@ -12,8 +12,12 @@ export const orderService = {
     return orders.map(toAdminOrderDTO);
   },
 
-  async getById(id: number): Promise<OrderDTO | null> {
-    const order = await orderRepository.findById(id);
+  async getById(id: number, userId?: number, isAdmin = false): Promise<OrderDTO | null> {
+    const order = await orderRepository.findById(id, isAdmin ? undefined : userId);
     return order ? toOrderDTO(order) : null;
+  },
+
+  async createFromCart(userId: number, items: { productId: number; quantity: number }[], cardLast4: string) {
+    return orderRepository.createFromCart(userId, items, cardLast4).then(toOrderDTO);
   },
 };

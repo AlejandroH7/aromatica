@@ -4,7 +4,6 @@ export interface NewUser {
   email: string;
   password: string;
   name: string;
-  role?: "CUSTOMER" | "ADMIN";
 }
 
 export const userRepository = {
