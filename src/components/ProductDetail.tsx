@@ -15,7 +15,6 @@ export default function ProductDetail({ id }: { id: string }) {
   const [product, setProduct] = useState<ProductDTO | null>(null);
   const [reviews, setReviews] = useState<ReviewDTO[]>([]);
   const [notFound, setNotFound] = useState(false);
-  const [author, setAuthor] = useState("");
   const [bodyHtml, setBodyHtml] = useState("");
   const [rating, setRating] = useState(5);
   const [formError, setFormError] = useState<string | null>(null);
@@ -46,7 +45,7 @@ export default function ProductDetail({ id }: { id: string }) {
       const res = await fetch(`/api/products/${id}/reviews`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ author: author || user?.name, bodyHtml, rating }),
+        body: JSON.stringify({ bodyHtml, rating }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -153,10 +152,7 @@ export default function ProductDetail({ id }: { id: string }) {
                       <span className="text-sand-dark">{"★".repeat(Math.max(0, 5 - r.rating))}</span>
                     </span>
                   </div>
-                  <div
-                    className="mt-3 text-[0.95rem] leading-relaxed text-ink-muted"
-                    dangerouslySetInnerHTML={{ __html: r.bodyHtml }}
-                  />
+                  <p className="mt-3 whitespace-pre-wrap text-[0.95rem] leading-relaxed text-ink-muted">{r.bodyHtml}</p>
                 </article>
               ))}
             </div>
@@ -164,19 +160,7 @@ export default function ProductDetail({ id }: { id: string }) {
 
           <form onSubmit={handleSubmit} className="space-y-5 self-start rounded-sm bg-sand p-6 sm:p-8">
             <h3 className="font-serif text-3xl font-light text-ink">Escribe una reseña</h3>
-            <div>
-              <label htmlFor="review-author" className="label">
-                Nombre
-              </label>
-              <input
-                id="review-author"
-                value={author}
-                onChange={(e) => setAuthor(e.target.value)}
-                placeholder={user ? user.name : "Tu nombre"}
-                aria-label="Tu nombre"
-                className="field"
-              />
-            </div>
+            {!user && <p className="text-sm text-ink-muted">Inicia sesión para publicar una reseña.</p>}
             <div>
               <label htmlFor="review-body" className="label">
                 Tu opinión
@@ -214,7 +198,7 @@ export default function ProductDetail({ id }: { id: string }) {
                 {formError}
               </p>
             )}
-            <button type="submit" disabled={sending} className="btn-primary w-full">
+            <button type="submit" disabled={sending || !user} className="btn-primary w-full">
               {sending ? "Enviando..." : "Publicar reseña"}
             </button>
           </form>

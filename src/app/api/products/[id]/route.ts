@@ -3,8 +3,8 @@ import { productService } from "@/server/services/productService";
 
 export const dynamic = "force-dynamic";
 
-export async function GET(_request: Request, { params }: { params: { id: string } }) {
-  const id = Number(params.id);
+export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const id = Number((await params).id);
   const product = Number.isInteger(id) ? await productService.get(id) : null;
 
   if (!product) {

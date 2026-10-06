@@ -1,0 +1,20 @@
+-- Baseline schema for fresh environments. Apply with prisma migrate deploy.
+CREATE TYPE "Role" AS ENUM ('CUSTOMER', 'ADMIN');
+CREATE TABLE "User" ("id" SERIAL NOT NULL, "email" TEXT NOT NULL, "password" TEXT NOT NULL, "name" TEXT NOT NULL, "role" "Role" NOT NULL DEFAULT 'CUSTOMER', "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP, CONSTRAINT "User_pkey" PRIMARY KEY ("id"));
+CREATE TABLE "Product" ("id" SERIAL NOT NULL, "name" TEXT NOT NULL, "brand" TEXT NOT NULL, "description" TEXT NOT NULL, "priceCents" INTEGER NOT NULL, "stock" INTEGER NOT NULL, "imageUrl" TEXT NOT NULL, "active" BOOLEAN NOT NULL DEFAULT true, "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP, CONSTRAINT "Product_pkey" PRIMARY KEY ("id"));
+CREATE TABLE "Review" ("id" SERIAL NOT NULL, "productId" INTEGER NOT NULL, "userId" INTEGER, "author" TEXT NOT NULL, "bodyHtml" TEXT NOT NULL, "rating" INTEGER NOT NULL DEFAULT 5, "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP, CONSTRAINT "Review_pkey" PRIMARY KEY ("id"));
+CREATE TABLE "Order" ("id" SERIAL NOT NULL, "userId" INTEGER NOT NULL, "status" TEXT NOT NULL DEFAULT 'PAID', "totalCents" INTEGER NOT NULL, "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP, CONSTRAINT "Order_pkey" PRIMARY KEY ("id"));
+CREATE TABLE "OrderItem" ("id" SERIAL NOT NULL, "orderId" INTEGER NOT NULL, "productId" INTEGER NOT NULL, "quantity" INTEGER NOT NULL, "unitPriceCents" INTEGER NOT NULL, CONSTRAINT "OrderItem_pkey" PRIMARY KEY ("id"));
+CREATE TABLE "Payment" ("id" SERIAL NOT NULL, "orderId" INTEGER NOT NULL, "cardLast4" TEXT NOT NULL, "amountCents" INTEGER NOT NULL, "status" TEXT NOT NULL DEFAULT 'APPROVED', "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP, CONSTRAINT "Payment_pkey" PRIMARY KEY ("id"));
+CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
+CREATE INDEX "Product_active_id_idx" ON "Product"("active", "id");
+CREATE INDEX "Review_productId_createdAt_idx" ON "Review"("productId", "createdAt");
+CREATE INDEX "OrderItem_productId_idx" ON "OrderItem"("productId");
+CREATE UNIQUE INDEX "OrderItem_orderId_productId_key" ON "OrderItem"("orderId", "productId");
+CREATE UNIQUE INDEX "Payment_orderId_key" ON "Payment"("orderId");
+ALTER TABLE "Review" ADD CONSTRAINT "Review_productId_fkey" FOREIGN KEY ("productId") REFERENCES "Product"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "Review" ADD CONSTRAINT "Review_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "Order" ADD CONSTRAINT "Order_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "OrderItem" ADD CONSTRAINT "OrderItem_orderId_fkey" FOREIGN KEY ("orderId") REFERENCES "Order"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "OrderItem" ADD CONSTRAINT "OrderItem_productId_fkey" FOREIGN KEY ("productId") REFERENCES "Product"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "Payment" ADD CONSTRAINT "Payment_orderId_fkey" FOREIGN KEY ("orderId") REFERENCES "Order"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

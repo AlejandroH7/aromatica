@@ -2,6 +2,7 @@ import { prisma } from "@/lib/db";
 
 export interface NewReview {
   productId: number;
+  userId: number;
   author: string;
   bodyHtml: string;
   rating: number;

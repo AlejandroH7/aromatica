@@ -10,8 +10,7 @@ export interface SessionUser {
 
 interface AuthState {
   user: SessionUser | null;
-  token: string | null;
-  setAuth: (user: SessionUser, token: string) => void;
+  setAuth: (user: SessionUser) => void;
   logout: () => void;
 }
 
@@ -19,9 +18,8 @@ export const useAuthStore = create<AuthState>()(
   persist(
     (set) => ({
       user: null,
-      token: null,
-      setAuth: (user, token) => set({ user, token }),
-      logout: () => set({ user: null, token: null }),
+      setAuth: (user) => set({ user }),
+      logout: () => set({ user: null }),
     }),
     { name: "aromatica-auth" },
   ),

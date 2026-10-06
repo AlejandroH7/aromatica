@@ -17,7 +17,7 @@ export interface NewProduct {
 
 export const productRepository = {
   findAll() {
-    return prisma.product.findMany({ orderBy: { id: "asc" } });
+    return prisma.product.findMany({ where: { active: true }, orderBy: { id: "asc" } });
   },
 
   findById(id: number) {
@@ -37,8 +37,12 @@ export const productRepository = {
   },
 
   search(term: string) {
-    return prisma.$queryRawUnsafe<ProductSearchRow[]>(
-      `SELECT id, name, brand, description, "priceCents", stock, "imageUrl" FROM "Product" WHERE name ILIKE '%${term}%' OR brand ILIKE '%${term}%' ORDER BY id`,
-    );
+    const pattern = `%${term}%`;
+    return prisma.$queryRaw<ProductSearchRow[]>`
+      SELECT id, name, brand, description, "priceCents", stock, "imageUrl"
+      FROM "Product"
+      WHERE active = true AND (name ILIKE ${pattern} OR brand ILIKE ${pattern})
+      ORDER BY id
+    `;
   },
 };

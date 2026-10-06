@@ -48,7 +48,7 @@ export default function AuthForm({ mode }: { mode: Mode }) {
         setError(data.error ?? "Ocurrió un error, intenta de nuevo");
         return;
       }
-      setAuth(data.user, data.token);
+      setAuth(data.user);
       router.push("/");
     } catch {
       setError("No se pudo conectar con el servidor");
