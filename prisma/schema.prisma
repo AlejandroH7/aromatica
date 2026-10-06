@@ -1,0 +1,81 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  CUSTOMER
+  ADMIN
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  password  String
+  name      String
+  role      Role     @default(CUSTOMER)
+  createdAt DateTime @default(now())
+  orders    Order[]
+  reviews   Review[]
+}
+
+model Product {
+  id          Int         @id @default(autoincrement())
+  name        String
+  brand       String
+  description String
+  priceCents  Int
+  stock       Int
+  imageUrl    String
+  active      Boolean     @default(true)
+  createdAt   DateTime    @default(now())
+  reviews     Review[]
+  orderItems  OrderItem[]
+}
+
+model Review {
+  id        Int      @id @default(autoincrement())
+  productId Int
+  userId    Int?
+  author    String
+  bodyHtml  String
+  rating    Int      @default(5)
+  createdAt DateTime @default(now())
+  product   Product  @relation(fields: [productId], references: [id])
+  user      User?    @relation(fields: [userId], references: [id])
+}
+
+model Order {
+  id         Int         @id @default(autoincrement())
+  userId     Int
+  status     String      @default("PAID")
+  totalCents Int
+  createdAt  DateTime    @default(now())
+  user       User        @relation(fields: [userId], references: [id])
+  items      OrderItem[]
+  payment    Payment?
+}
+
+model OrderItem {
+  id             Int     @id @default(autoincrement())
+  orderId        Int
+  productId      Int
+  quantity       Int
+  unitPriceCents Int
+  order          Order   @relation(fields: [orderId], references: [id])
+  product        Product @relation(fields: [productId], references: [id])
+}
+
+model Payment {
+  id          Int      @id @default(autoincrement())
+  orderId     Int      @unique
+  cardLast4   String
+  amountCents Int
+  status      String   @default("APPROVED")
+  createdAt   DateTime @default(now())
+  order       Order    @relation(fields: [orderId], references: [id])
+}
