@@ -15,7 +15,7 @@ jobs:
         with:
           node-version: 20
           cache: npm
-      - run: npm ci
+      - run: npm install --no-audit --no-fund
       - run: npm run check
         env:
           DATABASE_URL: postgresql://aromatica:local@localhost:5432/aromatica?schema=public
