@@ -7,17 +7,14 @@ import type { ProductDTO } from "@/server/dto/productDto";
 import { useAuthStore } from "@/store/auth";
 
 export default function AdminPanel() {
-  const { user, token } = useAuthStore();
+  const { user } = useAuthStore();
   const [mounted, setMounted] = useState(false);
   const [products, setProducts] = useState<ProductDTO[]>([]);
   const [orders, setOrders] = useState<AdminOrderDTO[]>([]);
   const [prices, setPrices] = useState<Record<number, string>>({});
   const [message, setMessage] = useState<string | null>(null);
 
-  const authHeaders = useCallback(
-    () => ({ "Content-Type": "application/json", Authorization: `Bearer ${token}` }),
-    [token],
-  );
+  const authHeaders = useCallback(() => ({ "Content-Type": "application/json" }), []);
 
   const load = useCallback(async () => {
     const [p, o] = await Promise.all([

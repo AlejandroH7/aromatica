@@ -17,10 +17,8 @@ const paymentSchema = z.object({
   cvv: z.string().regex(/^\d{3,4}$/, "CVV inválido"),
 });
 
-const paymentApiKey = process.env.NEXT_PUBLIC_PAYMENT_API_KEY;
-
 export default function CheckoutView() {
-  const { user, token } = useAuthStore();
+  const { user } = useAuthStore();
   const items = useCartStore((s) => s.items);
   const total = useCartStore(selectTotal);
   const clear = useCartStore((s) => s.clear);
@@ -48,8 +46,6 @@ export default function CheckoutView() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-          "X-Payment-Key": paymentApiKey ?? "",
         },
         body: JSON.stringify({
           items: items.map((i) => ({
