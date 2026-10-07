@@ -3,6 +3,7 @@ import DOMPurify from "isomorphic-dompurify";
 
 export interface NewReview {
   productId: number;
+  userId: number;
   author: string;
   bodyHtml: string;
   rating: number;

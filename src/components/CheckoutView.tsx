@@ -17,10 +17,8 @@ const paymentSchema = z.object({
   cvv: z.string().regex(/^\d{3,4}$/, "CVV inválido"),
 });
 
-const paymentApiKey = process.env.NEXT_PUBLIC_PAYMENT_API_KEY;
-
 export default function CheckoutView() {
-  const { user, token } = useAuthStore();
+  const user = useAuthStore((s) => s.user);
   const items = useCartStore((s) => s.items);
   const total = useCartStore(selectTotal);
   const clear = useCartStore((s) => s.clear);
@@ -46,18 +44,13 @@ export default function CheckoutView() {
     try {
       const res = await fetch("/api/orders", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-          "X-Payment-Key": paymentApiKey ?? "",
-        },
+        // Mejora de Ivan: sin Bearer; la cookie httpOnly de sesión se envía sola al mismo origen.
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           items: items.map((i) => ({
             productId: i.productId,
             quantity: i.quantity,
-            unitPriceCents: i.priceCents,
           })),
-          totalCents: total,
           cardLast4: parsed.data.cardNumber.slice(-4),
         }),
       });

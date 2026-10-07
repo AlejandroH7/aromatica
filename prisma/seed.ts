@@ -1,4 +1,5 @@
 import { PrismaClient, Role } from "@prisma/client";
+import bcrypt from "bcrypt";
 
 const prisma = new PrismaClient();
 
@@ -14,8 +15,8 @@ async function main() {
 
   await prisma.user.createMany({
     data: [
-      { email: "admin@aromatica.gt", password: "admin123", name: "Administrador", role: Role.ADMIN },
-      { email: "cliente@aromatica.gt", password: "123456", name: "Cliente Demo", role: Role.CUSTOMER },
+      { email: "admin@aromatica.gt", password: await bcrypt.hash("admin123", 10), name: "Administrador", role: Role.ADMIN },
+      { email: "cliente@aromatica.gt", password: await bcrypt.hash("123456", 10), name: "Cliente Demo", role: Role.CUSTOMER },
     ],
   });
 

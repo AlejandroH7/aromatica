@@ -7,26 +7,24 @@ import type { ProductDTO } from "@/server/dto/productDto";
 import { useAuthStore } from "@/store/auth";
 
 export default function AdminPanel() {
-  const { user, token } = useAuthStore();
+  const user = useAuthStore((s) => s.user);
   const [mounted, setMounted] = useState(false);
   const [products, setProducts] = useState<ProductDTO[]>([]);
   const [orders, setOrders] = useState<AdminOrderDTO[]>([]);
   const [prices, setPrices] = useState<Record<number, string>>({});
   const [message, setMessage] = useState<string | null>(null);
 
-  const authHeaders = useCallback(
-    () => ({ "Content-Type": "application/json", Authorization: `Bearer ${token}` }),
-    [token],
-  );
+  // Mejora de Ivan: sin header Authorization; el navegador manda la cookie httpOnly en peticiones al mismo origen.
+  const jsonHeaders = { "Content-Type": "application/json" };
 
   const load = useCallback(async () => {
     const [p, o] = await Promise.all([
       fetch("/api/products"),
-      fetch("/api/admin/orders", { headers: authHeaders() }),
+      fetch("/api/admin/orders"),
     ]);
     if (p.ok) setProducts(await p.json());
     if (o.ok) setOrders(await o.json());
-  }, [authHeaders]);
+  }, []);
 
   useEffect(() => setMounted(true), []);
 
@@ -42,7 +40,7 @@ export default function AdminPanel() {
     }
     const res = await fetch(`/api/admin/products/${id}`, {
       method: "PATCH",
-      headers: authHeaders(),
+      headers: jsonHeaders,
       body: JSON.stringify({ priceCents: Math.round(quetzales * 100) }),
     });
     setMessage(res.ok ? "Precio actualizado" : "No se pudo actualizar el precio");
@@ -51,7 +49,7 @@ export default function AdminPanel() {
   }
 
   async function remove(id: number) {
-    const res = await fetch(`/api/admin/products/${id}`, { method: "DELETE", headers: authHeaders() });
+    const res = await fetch(`/api/admin/products/${id}`, { method: "DELETE" });
     setMessage(res.ok ? "Producto eliminado" : "No se pudo eliminar (¿tiene órdenes asociadas?)");
     load();
   }
@@ -62,7 +60,7 @@ export default function AdminPanel() {
     const v = Object.fromEntries(new FormData(form).entries());
     const res = await fetch("/api/admin/products", {
       method: "POST",
-      headers: authHeaders(),
+      headers: jsonHeaders,
       body: JSON.stringify({
         name: v.name,
         brand: v.brand,

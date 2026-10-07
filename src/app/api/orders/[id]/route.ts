@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getSessionUser } from "@/lib/auth";
-import { orderService } from "@/server/services/orderService";
+import { OrderError, orderService } from "@/server/services/orderService";
 
 export const dynamic = "force-dynamic";
 
@@ -11,18 +11,21 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
   }
 
   const id = Number(params.id);
-  const order = Number.isInteger(id) ? await orderService.getById(id) : null;
-  if (!order) {
+  if (!Number.isInteger(id)) {
     return NextResponse.json({ error: "Orden no encontrada" }, { status: 404 });
   }
 
-  // VERIFICACIÓN CRÍTICA: Validar ownership - Prevenir IDOR
-  if (order.userId !== session.id) {
-    return NextResponse.json(
-      { error: "No autorizado para acceder a esta orden" },
-      { status: 403 }
-    );
+  try {
+    // VERIFICACIÓN CRÍTICA: Validar ownership - Prevenir IDOR
+    const order = await orderService.getByIdForUser(id, session.userId);
+    if (!order) {
+      return NextResponse.json({ error: "Orden no encontrada" }, { status: 404 });
+    }
+    return NextResponse.json(order);
+  } catch (e) {
+    if (e instanceof OrderError) {
+      return NextResponse.json({ error: e.message }, { status: e.status });
+    }
+    throw e;
   }
-
-  return NextResponse.json(order);
 }

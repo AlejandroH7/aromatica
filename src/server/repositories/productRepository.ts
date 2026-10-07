@@ -36,9 +36,24 @@ export const productRepository = {
     return prisma.product.delete({ where: { id } });
   },
 
-  search(term: string) {
-    return prisma.$queryRawUnsafe<ProductSearchRow[]>(
-      `SELECT id, name, brand, description, "priceCents", stock, "imageUrl" FROM "Product" WHERE name ILIKE '%${term}%' OR brand ILIKE '%${term}%' ORDER BY id`,
-    );
+  search(term: string): Promise<ProductSearchRow[]> {
+    return prisma.product.findMany({
+      where: {
+        OR: [
+          { name: { contains: term, mode: "insensitive" } },
+          { brand: { contains: term, mode: "insensitive" } },
+        ],
+      },
+      select: {
+        id: true,
+        name: true,
+        brand: true,
+        description: true,
+        priceCents: true,
+        stock: true,
+        imageUrl: true,
+      },
+      orderBy: { id: "asc" },
+    });
   },
 };

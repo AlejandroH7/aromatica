@@ -15,17 +15,13 @@ services:
 
   web:
     build: .
+    # Mejora de Ivan: sin volúmenes de código ni WATCHPACK_POLLING; corre el build de producción de la imagen.
     env_file: .env
-    environment:
-      WATCHPACK_POLLING: "true"
     depends_on:
       db:
         condition: service_healthy
     ports:
       - "3000:3000"
-    volumes:
-      - ./src:/app/src
-      - ./prisma:/app/prisma
 
 volumes:
   pgdata:

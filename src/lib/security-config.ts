@@ -18,6 +18,13 @@ export function validateSecurityConfig(): void {
     );
   }
 
+  // Validate PAYMENT_API_KEY (llave secreta del proveedor de pagos, solo servidor)
+  if (!process.env.PAYMENT_API_KEY) {
+    errors.push(
+      "❌ PAYMENT_API_KEY is missing. Set it in .env (server-only, never NEXT_PUBLIC_)."
+    );
+  }
+
   // Validate NODE_ENV
   if (!process.env.NODE_ENV) {
     errors.push("❌ NODE_ENV is not set");
@@ -35,4 +42,18 @@ export function validateSecurityConfig(): void {
   }
 
   console.log("✅ Security configuration validated");
+}
+
+/**
+ * Llave secreta del proveedor de pagos. Solo debe llamarse desde código de servidor.
+ */
+export function getPaymentApiKey(): string {
+  const key = process.env.PAYMENT_API_KEY;
+  if (!key) {
+    throw new Error(
+      "FATAL: PAYMENT_API_KEY environment variable is not set. " +
+      "Set it in .env (server-only, without the NEXT_PUBLIC_ prefix)."
+    );
+  }
+  return key;
 }

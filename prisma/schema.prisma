@@ -45,8 +45,8 @@ model Review {
   bodyHtml  String
   rating    Int      @default(5)
   createdAt DateTime @default(now())
-  product   Product  @relation(fields: [productId], references: [id])
-  user      User?    @relation(fields: [userId], references: [id])
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  user      User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Order {
@@ -55,7 +55,7 @@ model Order {
   status     String      @default("PAID")
   totalCents Int
   createdAt  DateTime    @default(now())
-  user       User        @relation(fields: [userId], references: [id])
+  user       User        @relation(fields: [userId], references: [id], onDelete: Restrict)
   items      OrderItem[]
   payment    Payment?
 }
@@ -66,8 +66,8 @@ model OrderItem {
   productId      Int
   quantity       Int
   unitPriceCents Int
-  order          Order   @relation(fields: [orderId], references: [id])
-  product        Product @relation(fields: [productId], references: [id])
+  order          Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product        Product @relation(fields: [productId], references: [id], onDelete: Restrict)
 }
 
 model Payment {
@@ -77,5 +77,5 @@ model Payment {
   amountCents Int
   status      String   @default("APPROVED")
   createdAt   DateTime @default(now())
-  order       Order    @relation(fields: [orderId], references: [id])
+  order       Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
 }

@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { randomBytes as generateRandomBytes } from 'crypto';
 
 export function middleware(request: NextRequest) {
   // Generar request ID único para tracking
-  const requestId = generateRandomBytes(16).toString('hex');
+  const requestId = crypto.randomUUID();
 
   // Agregar headers de seguridad
   const response = NextResponse.next();

@@ -4,10 +4,25 @@ import { withAdminAuth, type AdminRequest } from "@/lib/authMiddleware";
 
 export const dynamic = "force-dynamic";
 
+function parseId(raw: string): number | null {
+  const id = Number(raw);
+  return Number.isInteger(id) && id > 0 ? id : null;
+}
+
 export const PATCH = withAdminAuth(
   async (req: AdminRequest, { params }: { params: { id: string } }) => {
-    const id = Number(params.id);
-    const { priceCents, stock } = await req.json();
+    const id = parseId(params.id);
+    if (id === null) {
+      return NextResponse.json({ error: "ID de producto inválido" }, { status: 400 });
+    }
+
+    let body;
+    try {
+      body = await req.json();
+    } catch {
+      return NextResponse.json({ error: "JSON inválido" }, { status: 400 });
+    }
+    const { priceCents, stock } = body ?? {};
 
     try {
       let product = await productService.get(id);
@@ -30,7 +45,10 @@ export const PATCH = withAdminAuth(
 
 export const DELETE = withAdminAuth(
   async (_req: AdminRequest, { params }: { params: { id: string } }) => {
-    const id = Number(params.id);
+    const id = parseId(params.id);
+    if (id === null) {
+      return NextResponse.json({ error: "ID de producto inválido" }, { status: 400 });
+    }
 
     try {
       await productService.remove(id);

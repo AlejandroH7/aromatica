@@ -41,10 +41,15 @@ export default function ProductDetail({ id }: { id: string }) {
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setFormError(null);
+    if (!user) {
+      setFormError("Inicia sesión para publicar una reseña");
+      return;
+    }
     setSending(true);
     try {
       const res = await fetch(`/api/products/${id}/reviews`, {
         method: "POST",
+        // Mejora de Ivan: la sesión viaja en la cookie httpOnly, no en el header Authorization.
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ author: author || user?.name, bodyHtml: body, rating }),
       });

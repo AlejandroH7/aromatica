@@ -5,12 +5,14 @@ import { useState, type FormEvent } from "react";
 import { z } from "zod";
 import { useAuthStore } from "@/store/auth";
 
+// Mejora de Ivan: el login no exige 8 caracteres (bloqueaba al usuario del seed con "123456"); la regla de largo aplica solo al registro.
 const loginSchema = z.object({
   email: z.string().email("Ingresa un correo válido"),
-  password: z.string().min(8, "La contraseña debe tener al menos 8 caracteres"),
+  password: z.string().min(1, "Ingresa tu contraseña"),
 });
 
 const registerSchema = loginSchema.extend({
+  password: z.string().min(8, "La contraseña debe tener al menos 8 caracteres"),
   name: z.string().min(1, "Ingresa tu nombre"),
 });
 
@@ -18,7 +20,7 @@ type Mode = "login" | "register";
 
 export default function AuthForm({ mode }: { mode: Mode }) {
   const router = useRouter();
-  const setAuth = useAuthStore((s) => s.setAuth);
+  const setUser = useAuthStore((s) => s.setUser);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -48,7 +50,8 @@ export default function AuthForm({ mode }: { mode: Mode }) {
         setError(data.error ?? "Ocurrió un error, intenta de nuevo");
         return;
       }
-      setAuth(data.user, data.token);
+      // Mejora de Ivan: el servidor ya dejó la cookie de sesión; aquí solo se guarda el usuario para la UI.
+      setUser(data.user);
       router.push("/");
     } catch {
       setError("No se pudo conectar con el servidor");

@@ -1,3 +1,4 @@
+import { Prisma } from '@prisma/client';
 import { NextResponse } from 'next/server';
 import { logger } from './logger';
 
@@ -8,6 +9,16 @@ interface ErrorResponse {
 }
 
 const isProduction = process.env.NODE_ENV === 'production';
+
+// Códigos de error conocidos de Prisma → status HTTP y mensaje genérico
+const PRISMA_ERRORS: Record<string, { status: number; message: string }> = {
+  P2002: { status: 409, message: 'This resource already exists' },
+  P2025: { status: 404, message: 'Resource not found' },
+  P2003: { status: 409, message: 'Invalid reference to related resource' },
+};
+
+const getPrismaError = (error: Error) =>
+  error instanceof Prisma.PrismaClientKnownRequestError ? PRISMA_ERRORS[error.code] : undefined;
 
 // Mapeo de tipos de error a mensajes genéricos seguros
 const getGenericMessage = (error: Error): string => {
@@ -24,11 +35,9 @@ const getGenericMessage = (error: Error): string => {
   if (error.name === 'NotFoundError') {
     return 'Resource not found';
   }
-  if (error.message.includes('UNIQUE constraint failed')) {
-    return 'This resource already exists';
-  }
-  if (error.message.includes('Foreign key constraint failed')) {
-    return 'Invalid reference to related resource';
+  const prismaError = getPrismaError(error);
+  if (prismaError) {
+    return prismaError.message;
   }
   return 'An unexpected error occurred';
 };
@@ -38,8 +47,8 @@ const getStatusCode = (error: Error): number => {
   if (error.name === 'UnauthorizedError') return 401;
   if (error.name === 'ForbiddenError') return 403;
   if (error.name === 'NotFoundError') return 404;
-  if (error.message.includes('UNIQUE constraint failed')) return 409;
-  if (error.message.includes('Foreign key constraint failed')) return 422;
+  const prismaError = getPrismaError(error);
+  if (prismaError) return prismaError.status;
   return 500;
 };
 

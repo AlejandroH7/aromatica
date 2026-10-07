@@ -8,10 +8,10 @@ export interface SessionUser {
   role: string;
 }
 
+// Mejora de Ivan: el store ya no guarda el JWT (vive en cookie httpOnly); solo datos de UI del usuario.
 interface AuthState {
   user: SessionUser | null;
-  token: string | null;
-  setAuth: (user: SessionUser, token: string) => void;
+  setUser: (user: SessionUser | null) => void;
   logout: () => void;
 }
 
@@ -19,10 +19,13 @@ export const useAuthStore = create<AuthState>()(
   persist(
     (set) => ({
       user: null,
-      token: null,
-      setAuth: (user, token) => set({ user, token }),
-      logout: () => set({ user: null, token: null }),
+      setUser: (user) => set({ user }),
+      logout: () => set({ user: null }),
     }),
-    { name: "aromatica-auth" },
+    {
+      name: "aromatica-auth",
+      // Mejora de Ivan: solo se persisten id, name, email y role; un token viejo en localStorage se descarta.
+      partialize: (state) => ({ user: state.user }),
+    },
   ),
 );

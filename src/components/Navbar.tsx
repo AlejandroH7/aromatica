@@ -6,12 +6,24 @@ import { useAuthStore } from "@/store/auth";
 import { selectCount, useCartStore } from "@/store/cart";
 
 export default function Navbar() {
-  const { user, logout } = useAuthStore();
+  const { user, setUser, logout } = useAuthStore();
   const count = useCartStore(selectCount);
   const [mounted, setMounted] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => setMounted(true), []);
+
+  // Mejora de Ivan: al recargar se pregunta al servidor por la sesión (cookie); si expiró o no existe, se limpia el store.
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await fetch("/api/auth/me");
+        setUser(res.ok ? await res.json() : null);
+      } catch {
+        // Sin conexión: se conserva el estado actual.
+      }
+    })();
+  }, [setUser]);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8);
@@ -21,8 +33,12 @@ export default function Navbar() {
   }, []);
 
   async function handleLogout() {
-    await fetch("/api/auth/logout", { method: "POST" });
-    logout();
+    // Mejora de Ivan: el servidor borra la cookie y el store se limpia aunque la petición falle.
+    try {
+      await fetch("/api/auth/logout", { method: "POST" });
+    } finally {
+      logout();
+    }
   }
 
   const session = mounted ? user : null;

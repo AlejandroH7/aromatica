@@ -7,11 +7,12 @@ export function withAdminAuth(
   handler: (req: AdminRequest, context?: any) => Promise<Response>
 ) {
   return async (req: AdminRequest, context?: any) => {
+    // Mejora de Ivan: la sesión sale de la cookie httpOnly (getSessionUser), ya no del header Authorization.
     const user = getSessionUser(req);
 
     if (!user) {
       return NextResponse.json(
-        { error: "No autenticado. Proporciona un token JWT válido en el header Authorization" },
+        { error: "No autenticado. Inicia sesión para continuar" },
         { status: 401 }
       );
     }
